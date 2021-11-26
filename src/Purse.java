@@ -158,22 +158,22 @@ public class Purse {
                 }
             }
             System.out.println(pin);
-            if (verifyPINUser(pin)){
+            if (verifyPINAdmin(pin)){
                 adminTriesLeft = MAX_ADMIN_TRIES;
-                lifeCycleState = LCS.USE;
+                setAdminAuthenticate(true);
                 return true;
             }
             System.out.println("Code PIN erroné");
             adminTriesLeft--;
         }
 
-        System.out.println("Carte bloquée");
-        setLifeCycleState(LCS.BLOCKED);
+        System.out.println("Carte morte");
+        setLifeCycleState(LCS.DEAD);
         return false;
 
     }
     private boolean getIdentificationUser(){
-        while (userTriesLeft > 0 && lifeCycleState == LCS.PRE_PERSO)
+        while (userTriesLeft > 0 && lifeCycleState == LCS.USE)
         {
             Scanner sc = new Scanner(System.in);
             System.out.println("Entrez votre PIN : ");
@@ -188,7 +188,7 @@ public class Purse {
             System.out.println(pin);
             if (verifyPINUser(pin)){
                 userTriesLeft = MAX_USER_TRIES;
-                lifeCycleState = LCS.USE;
+                setUserAuthenticate(true);
                 return true;
             }
             System.out.println("Code PIN erroné");
@@ -199,10 +199,70 @@ public class Purse {
         setLifeCycleState(LCS.BLOCKED);
         return false;
     }
-    void PINChangeUnblock()
-    void beginTransactionDebit(int amount)
-    void beginTransactionCredit(int amount)
-    void commitTransactionDebit()
-    void commitTransactionCredit()
-    int getData()
+    void PINChangeUnblock(){
+        boolean identification = getIdentificationAdmin();
+        if(lifeCycleState == LCS.BLOCKED && identification)
+        {
+            setLifeCycleState(LCS.USE);
+        }
+        else if (!adminAuthenticate)
+        {
+            System.out.println("Cette operation doit etre faite par l'administrateur");
+        }
+    }
+    void beginTransactionDebit(int amount){
+        boolean identification = getIdentificationUser();
+        if(identification)
+        {
+            if(amount <= balance && amount <= maxDebitAmount)
+            {
+                balance -= amount;
+            }
+            else
+                System.out.println("Transaction échouée Solde insuffisant");
+        }
+        else
+            System.out.println("Non authentifié");
+    }
+    void beginTransactionCredit(int amount){
+        boolean identification = getIdentificationUser();
+        if(identification)
+        {
+            if(amount <= maxCreditAmount)
+            {
+                balance += amount;
+            }
+            else
+                System.out.println("Transaction échouée Max Credit dépassé");
+        }
+        else
+            System.out.println("Non authentifié");
+    }
+    void commitTransactionDebit(){
+        if(userAuthenticate)
+        {
+            transLeft--;
+        }
+        if (transLeft == 0)
+        {
+            setLifeCycleState(LCS.DEAD);
+        }
+    }
+    void commitTransactionCredit(){
+        if(userAuthenticate)
+        {
+            transLeft--;
+        }
+        if (transLeft == 0)
+        {
+            setLifeCycleState(LCS.DEAD);
+        }
+    }
+    int getData(){
+        if(userAuthenticate)
+        {
+            return balance;
+        }
+        return 0;
+    }
 }
