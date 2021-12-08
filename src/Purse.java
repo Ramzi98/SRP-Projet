@@ -1,5 +1,9 @@
 import java.util.*;
 
+/**
+ * @author TCHOULAK Ramzi && HENNI Karam DL2
+ */
+
 public class Purse {
     enum LCS {PRE_PERSO, USE, BLOCKED, DEAD}
     enum TType {DEBIT,CREDIT}

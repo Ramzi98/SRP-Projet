@@ -1,3 +1,6 @@
+/**
+ * @author TCHOULAK Ramzi && HENNI Karam DL2
+ */
 public class Main {
     public static void main(String[] args) {
         // Création d'un purse standard, PIN user = 1234, PIN admin = 123456
