@@ -177,15 +177,13 @@ public class Purse {
         {
             Scanner sc = new Scanner(System.in);
             System.out.println("Entrez votre PIN : ");
-            int i=0;
-            int[] pin = new int[10];
-            while (sc.hasNext()) {
-                if (sc.hasNextInt()) {
-                    pin[i]=sc.nextInt();
-                    i++;
-                }
+            String pins =sc.nextLine();
+            int[] pin = new int[4];
+            for (int i =0; i < 4; i++)
+            {
+                pin[i] = (int)pins.charAt(i) - '0';
             }
-            System.out.println(pin);
+
             if (verifyPINUser(pin)){
                 userTriesLeft = MAX_USER_TRIES;
                 setUserAuthenticate(true);
@@ -211,6 +209,7 @@ public class Purse {
         }
     }
     void beginTransactionDebit(int amount){
+
         boolean identification = getIdentificationUser();
         if(identification)
         {
@@ -225,6 +224,9 @@ public class Purse {
             System.out.println("Non authentifié");
     }
     void beginTransactionCredit(int amount){
+        if(lifeCycleState == LCS.PRE_PERSO){
+            setLifeCycleState(LCS.USE);
+        }
         boolean identification = getIdentificationUser();
         if(identification)
         {
