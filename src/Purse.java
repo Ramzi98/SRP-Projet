@@ -2,6 +2,7 @@ import java.util.*;
 
 public class Purse {
     enum LCS {PRE_PERSO, USE, BLOCKED, DEAD}
+    enum TType {DEBIT,CREDIT}
 
     private int[] userPIN;
     private int[] adminPIN;
@@ -18,6 +19,10 @@ public class Purse {
     private boolean userAuthenticate;
     private boolean adminAuthenticate;
     private LCS lifeCycleState;
+    private boolean inTransaction = false;
+    private int transactionMoney = 0;
+    private TType currentTransactionType;
+
 
     private int maxCreditAmount;
     private int maxDebitAmount;
@@ -212,7 +217,9 @@ public class Purse {
        }
     }
     void beginTransactionDebit(int amount){
-        if(lifeCycleState == LCS.PRE_PERSO && lifeCycleState == LCS.USE){
+        inTransaction = true;
+        currentTransactionType = TType.DEBIT;
+        if(lifeCycleState == LCS.PRE_PERSO){
             setLifeCycleState(LCS.USE);
         }
         if(lifeCycleState == LCS.DEAD){
@@ -226,6 +233,7 @@ public class Purse {
             if(amount <= balance && amount <= maxDebitAmount)
             {
                 balance -= amount;
+                transactionMoney = amount;
             }
             else
                 System.out.println("Transaction échouée Solde insuffisant");
@@ -234,6 +242,9 @@ public class Purse {
             System.out.println("Non authentifié");
     }
     void beginTransactionCredit(int amount) {
+        inTransaction = true;
+        currentTransactionType = TType.CREDIT;
+
         if (lifeCycleState == LCS.PRE_PERSO) {
             setLifeCycleState(LCS.USE);
         }
@@ -245,6 +256,7 @@ public class Purse {
         if (identification) {
             if (amount <= maxCreditAmount) {
                 balance += amount;
+                transactionMoney = amount;
             } else
                 System.out.println("Transaction échouée Max Credit dépassé");
 
@@ -260,6 +272,9 @@ public class Purse {
         if(userAuthenticate)
         {
             transLeft--;
+            inTransaction=false;
+            transactionMoney = 0;
+            System.out.println("Vous avez " + transLeft + "Transaction à faire");
         }
         if (transLeft == 0)
         {
@@ -270,6 +285,10 @@ public class Purse {
         if(userAuthenticate)
         {
             transLeft--;
+            inTransaction=false;
+            transactionMoney = 0;
+            System.out.println("Vous avez " + transLeft + "Transaction à faire");
+
         }
         if (transLeft == 0)
         {
@@ -282,5 +301,37 @@ public class Purse {
             return balance;
         }
         return 0;
+    }
+
+    void reset(){
+
+        if(inTransaction) {
+            System.out.println("Arrachage de la transaction en cours");
+            if (currentTransactionType == TType.DEBIT) {
+                abortDebitTransaction();
+            }
+            if (currentTransactionType == TType.CREDIT) {
+                abortCreditTransaction();
+
+            }
+
+        }
+    }
+
+    void abortDebitTransaction(){
+        balance += transactionMoney;
+        System.out.println(transactionMoney+"n'ont pas été debité de votre carte");
+        inTransaction=false;
+        transactionMoney = 0;
+
+    }
+
+    void abortCreditTransaction(){
+
+        balance -= transactionMoney;
+        System.out.println(transactionMoney+"n'ont pas été credité a votre carte");
+        inTransaction=false;
+        transactionMoney = 0;
+
     }
 }

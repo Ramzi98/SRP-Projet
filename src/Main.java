@@ -22,8 +22,11 @@ public class Main {
         purse.beginTransactionCredit(15);
         purse.commitTransactionCredit();
 
+        System.out.println("Affichage du solde : "+purse.getData());
+
         System.out.println("Opération de débit : 10 euros");
         purse.beginTransactionDebit(10);
-        purse.commitTransactionDebit();
+        purse.reset();
+        System.out.println("Affichage du solde : "+purse.getData());
     }
 }
