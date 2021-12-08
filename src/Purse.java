@@ -148,23 +148,23 @@ public class Purse {
         while (adminTriesLeft > 0 && lifeCycleState == LCS.BLOCKED)
         {
             Scanner sc = new Scanner(System.in);
-            System.out.println("Entrez votre PIN : ");
-            int i=0;
-            int[] pin = new int[10];
-            while (sc.hasNext()) {
-                if (sc.hasNextInt()) {
-                    pin[i]=sc.nextInt();
-                    i++;
-                }
+            System.out.println("Entrez votre PIN Administrateur : ");
+            String pins =sc.nextLine();
+            int[] pin = new int[6];
+            for (int i =0; i < 6; i++)
+            {
+                pin[i] = (int)pins.charAt(i) - '0';
             }
-            System.out.println(pin);
+
             if (verifyPINAdmin(pin)){
                 adminTriesLeft = MAX_ADMIN_TRIES;
                 setAdminAuthenticate(true);
+                setLifeCycleState(LCS.USE);
                 return true;
             }
             System.out.println("Code PIN erroné");
             adminTriesLeft--;
+            System.out.println("Il vous reste "+adminTriesLeft+" tentatives");
         }
 
         System.out.println("Carte morte");
@@ -173,6 +173,7 @@ public class Purse {
 
     }
     private boolean getIdentificationUser(){
+        System.out.println(lifeCycleState);
         while (userTriesLeft > 0 && lifeCycleState == LCS.USE)
         {
             Scanner sc = new Scanner(System.in);
@@ -191,24 +192,33 @@ public class Purse {
             }
             System.out.println("Code PIN erroné");
             userTriesLeft--;
-        }
+            System.out.println("Il vous reste "+userTriesLeft+" tentatives");
 
+        }
         System.out.println("Carte bloquée");
         setLifeCycleState(LCS.BLOCKED);
         return false;
+
     }
     void PINChangeUnblock(){
-        boolean identification = getIdentificationAdmin();
-        if(lifeCycleState == LCS.BLOCKED && identification)
-        {
-            setLifeCycleState(LCS.USE);
-        }
-        else if (!adminAuthenticate)
-        {
-            System.out.println("Cette operation doit etre faite par l'administrateur");
-        }
+       if( lifeCycleState == LCS.BLOCKED) {
+           boolean identification = getIdentificationAdmin();
+           if (identification) {
+               setLifeCycleState(LCS.USE);
+               userTriesLeft = 3;
+           } else if (!adminAuthenticate) {
+               System.out.println("Cette operation doit etre faite par l'administrateur");
+           }
+       }
     }
     void beginTransactionDebit(int amount){
+        if(lifeCycleState == LCS.PRE_PERSO && lifeCycleState == LCS.USE){
+            setLifeCycleState(LCS.USE);
+        }
+        if(lifeCycleState == LCS.DEAD){
+            System.out.println("Carte Morte");
+            return;
+        }
 
         boolean identification = getIdentificationUser();
         if(identification)
@@ -223,23 +233,29 @@ public class Purse {
         else
             System.out.println("Non authentifié");
     }
-    void beginTransactionCredit(int amount){
-        if(lifeCycleState == LCS.PRE_PERSO){
+    void beginTransactionCredit(int amount) {
+        if (lifeCycleState == LCS.PRE_PERSO) {
             setLifeCycleState(LCS.USE);
         }
-        boolean identification = getIdentificationUser();
-        if(identification)
-        {
-            if(amount <= maxCreditAmount)
-            {
-                balance += amount;
-            }
-            else
-                System.out.println("Transaction échouée Max Credit dépassé");
+        if (lifeCycleState == LCS.DEAD) {
+            System.out.println("Carte Morte");
+            return;
         }
-        else
-            System.out.println("Non authentifié");
-    }
+        boolean identification = getIdentificationUser();
+        if (identification) {
+            if (amount <= maxCreditAmount) {
+                balance += amount;
+            } else
+                System.out.println("Transaction échouée Max Credit dépassé");
+
+        }else{
+                System.out.println("Non authentifié");
+                if (lifeCycleState == LCS.BLOCKED) {
+                    PINChangeUnblock();
+                }
+            }
+        }
+
     void commitTransactionDebit(){
         if(userAuthenticate)
         {
