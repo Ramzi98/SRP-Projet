@@ -26,6 +26,7 @@ public class Purse {
 
     private int maxCreditAmount;
     private int maxDebitAmount;
+    private int maxBalance;
 
     Purse(int MAX_USER_TRIES, int MAX_ADMIN_TRIES, int MAX_TRANS, int MAX_BALANCE, int MAX_CREDIT_AMOUNT, int MAX_DEBIT_AMOUNT, int[] userPIN, int[] adminPIN)
     {
@@ -34,9 +35,10 @@ public class Purse {
         this.userTriesLeft = MAX_USER_TRIES;
         this.adminTriesLeft = MAX_ADMIN_TRIES;
         this.transLeft = MAX_TRANS;
-        this.balance = MAX_BALANCE;
+        this.balance = 0;
         this.maxCreditAmount = MAX_CREDIT_AMOUNT;
         this.maxDebitAmount = MAX_DEBIT_AMOUNT;
+        this.maxBalance = MAX_BALANCE;
         lifeCycleState = LCS.PRE_PERSO;
 
     }
@@ -48,106 +50,31 @@ public class Purse {
         this.userTriesLeft = MAX_USER_TRIES;
         this.adminTriesLeft = MAX_ADMIN_TRIES;
         this.transLeft = MAX_TRANS;
-        this.balance = MAX_BALANCE;
+        this.balance = 0;
         this.maxCreditAmount = MAX_CREDIT_AMOUNT;
         this.maxDebitAmount = MAX_DEBIT_AMOUNT;
+        this.maxBalance = MAX_BALANCE;
         lifeCycleState = LCS.PRE_PERSO;
     }
 
 
-    public int[] getUserPIN() {
-        return userPIN;
-    }
-
-    public void setUserPIN(int[] userPIN) {
-        this.userPIN = userPIN;
-    }
-
-    public int[] getAdminPIN() {
-        return adminPIN;
-    }
-
-    public void setAdminPIN(int[] adminPIN) {
-        this.adminPIN = adminPIN;
-    }
-
-    public int getUserTriesLeft() {
-        return userTriesLeft;
-    }
-
-    public void setUserTriesLeft(int userTriesLeft) {
-        this.userTriesLeft = userTriesLeft;
-    }
-
-    public int getAdminTriesLeft() {
-        return adminTriesLeft;
-    }
-
-    public void setAdminTriesLeft(int adminTriesLeft) {
-        this.adminTriesLeft = adminTriesLeft;
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-    public void setBalance(int balance) {
-        this.balance = balance;
-    }
-
-    public int getTransLeft() {
-        return transLeft;
-    }
-
-    public void setTransLeft(int transLeft) {
-        this.transLeft = transLeft;
-    }
-
-    public boolean isUserAuthenticate() {
-        return userAuthenticate;
-    }
-
     public void setUserAuthenticate(boolean userAuthenticate) {
         this.userAuthenticate = userAuthenticate;
-    }
-
-    public boolean isAdminAuthenticate() {
-        return adminAuthenticate;
     }
 
     public void setAdminAuthenticate(boolean adminAuthenticate) {
         this.adminAuthenticate = adminAuthenticate;
     }
 
-    public LCS getLifeCycleState() {
-        return lifeCycleState;
-    }
-
     public void setLifeCycleState(LCS lifeCycleState) {
         this.lifeCycleState = lifeCycleState;
     }
 
-    public int getMaxCreditAmount() {
-        return maxCreditAmount;
-    }
-
-    public void setMaxCreditAmount(int maxCreditAmount) {
-        this.maxCreditAmount = maxCreditAmount;
-    }
-
-    public int getMaxDebitAmount() {
-        return maxDebitAmount;
-    }
-
-    public void setMaxDebitAmount(int maxDebitAmount) {
-        this.maxDebitAmount = maxDebitAmount;
-    }
-
     boolean verifyPINUser(int[] PINCode){
-        if (Arrays.equals(PINCode,userPIN)) return true; else return false;
+        return Arrays.equals(PINCode, userPIN);
     }
     boolean verifyPINAdmin(int[] PINCode){
-        if (Arrays.equals(PINCode,adminPIN)) return true; else return false;
+        return Arrays.equals(PINCode, adminPIN);
     }
     private boolean getIdentificationAdmin(){
         while (adminTriesLeft > 0 && lifeCycleState == LCS.BLOCKED)
@@ -155,8 +82,8 @@ public class Purse {
             Scanner sc = new Scanner(System.in);
             System.out.println("Entrez votre PIN Administrateur : ");
             String pins =sc.nextLine();
-            int[] pin = new int[6];
-            for (int i =0; i < 6; i++)
+            int[] pin = new int[pins.length()];
+            for (int i =0; i < pins.length(); i++)
             {
                 pin[i] = (int)pins.charAt(i) - '0';
             }
@@ -184,12 +111,11 @@ public class Purse {
             Scanner sc = new Scanner(System.in);
             System.out.println("Entrez votre PIN : ");
             String pins =sc.nextLine();
-            int[] pin = new int[4];
-            for (int i =0; i < 4; i++)
+            int[] pin = new int[pins.length()];
+            for (int i =0; i < pins.length(); i++)
             {
                 pin[i] = (int)pins.charAt(i) - '0';
             }
-
             if (verifyPINUser(pin)){
                 userTriesLeft = MAX_USER_TRIES;
                 setUserAuthenticate(true);
@@ -230,7 +156,7 @@ public class Purse {
         boolean identification = getIdentificationUser();
         if(identification)
         {
-            if(amount <= balance && amount <= maxDebitAmount)
+            if(amount <= balance && amount <= maxDebitAmount && amount > 0)
             {
                 balance -= amount;
                 transactionMoney = amount;
@@ -254,13 +180,16 @@ public class Purse {
         }
         boolean identification = getIdentificationUser();
         if (identification) {
-            if (amount <= maxCreditAmount) {
+            int newBalance = balance+amount;
+            if (amount <= maxCreditAmount && amount > 0 && newBalance <= maxBalance) {
                 balance += amount;
                 transactionMoney = amount;
-            } else
-                System.out.println("Transaction échouée Max Credit dépassé");
+            }
+            else if (newBalance > maxBalance) System.out.println("Max Balance dépassé");
+            else System.out.println("Transaction échouée Max Credit dépassé");
 
-        }else{
+        }
+        else{
                 System.out.println("Non authentifié");
                 if (lifeCycleState == LCS.BLOCKED) {
                     PINChangeUnblock();
@@ -279,6 +208,7 @@ public class Purse {
         if (transLeft == 0)
         {
             setLifeCycleState(LCS.DEAD);
+            System.out.println("Max Transactions dépassé");
         }
     }
     void commitTransactionCredit(){
@@ -293,6 +223,7 @@ public class Purse {
         if (transLeft == 0)
         {
             setLifeCycleState(LCS.DEAD);
+            System.out.println("Max Transactions dépassé");
         }
     }
     int getData(){
