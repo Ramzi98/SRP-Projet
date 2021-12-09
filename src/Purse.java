@@ -2,6 +2,7 @@ import java.util.*;
 
 /**
  * @author TCHOULAK Ramzi && HENNI Karam DL2
+ * java version 8
  */
 
 public class Purse {
@@ -207,7 +208,7 @@ public class Purse {
             transLeft--;
             inTransaction=false;
             transactionMoney = 0;
-            System.out.println("Vous avez " + transLeft + "Transaction à faire");
+            System.out.println("Vous avez " + transLeft + " Transaction à faire");
         }
         if (transLeft == 0)
         {
@@ -221,7 +222,7 @@ public class Purse {
             transLeft--;
             inTransaction=false;
             transactionMoney = 0;
-            System.out.println("Vous avez " + transLeft + "Transaction à faire");
+            System.out.println("Vous avez " + transLeft + " Transaction à faire");
 
         }
         if (transLeft == 0)
